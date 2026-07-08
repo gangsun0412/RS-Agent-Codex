@@ -1,0 +1,33 @@
+# ============ 核心依赖 ============
+openai>=2.0.0
+numpy>=2.0.0
+
+# ============ 遥感数据处理 ============
+# GDAL 需手动安装（Windows推荐从 https://www.gisinternals.com/ 下载whl）
+gdal>=3.8.0
+rasterio>=1.4.0
+
+# ============ Agent 框架 ============
+langchain>=1.0.0
+langchain-community>=0.4.0
+langchain-huggingface>=1.2.0
+langchain-text-splitters>=1.1.0
+
+# ============ RAG 知识库 ============
+chromadb>=1.5.0
+sentence-transformers>=5.0.0
+pymupdf>=1.27.0
+
+# ============ MATLAB 引擎 ============
+# 需从 Matlab 安装目录手动安装:
+# cd "C:\Program Files\MATLAB\R2023b\extern\engines\python"
+# python setup.py install
+
+# ============ 工具 ============
+python-dotenv>=1.0.0
+
+# ============ 测试 ============
+pytest>=8.0.0
+
+# ============ 后续 UI（暂不启用） ============
+# streamlit>=1.30.0

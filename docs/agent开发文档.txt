@@ -1,0 +1,122 @@
+好，帮你提炼一份完整的Agent开发背景文档，你可以直接拿去新对话或者给Codex用：
+
+---
+
+## 遥感自动化生产Agent开发文档
+
+### 项目概述
+基于OpenAI Function Calling机制，开发面向遥感垂直领域的自动化生产Agent。使用DeepSeek API（兼容OpenAI格式），Python 3.11虚拟环境，IDE为PyCharm，项目路径`E:\pythonCode\CodexProject`。
+
+---
+
+### 已完成的部分
+
+**环境配置**
+- Python 3.11虚拟环境，路径`E:\pythonCode\CodexProject\.venv`
+- 已安装：openai、matlab.engine、rasterio、gdal、numpy、langchain、chromadb、sentence-transformers、pymupdf、langchain-huggingface、langchain-text-splitters
+- Matlab 2023b本地安装，matlab.engine调用已测试通过
+- DeepSeek API已配置可用
+
+**已封装的四个Tool（路径：`E:\pythonCode\CodexProject`）**
+
+1. `tool_preprocess.py` — GLASS NDVI预处理
+   - HDF转TIFF→重投影EPSG:4326→重采样240m→ROI裁剪
+   - 输入：HDF文件夹、输出文件夹、ROI.shp、起止年份
+   - 输出：裁剪后TIFF，命名格式yyyymmdd.tif
+
+2. `tool_plc.py` + `plc_correction.m` — PLC地形校正
+   - 对Landsat SR（8波段）进行地形辐射校正，取前7波段输出
+   - 输入：SR影像文件夹、slope.tif、aspect.tif、输出文件夹
+   - 调用方式：matlab.engine调用plc_correction.m
+
+3. `tool_rf.py` + `tool_rf_train.m` + `tool_rf_apply.m` — 随机森林训练与应用
+   - 训练：Landsat SR（7波段）+ GLASS NDVI → 训练RF模型，保存.mat
+   - 应用：加载模型估算晴空NDVI，输出[-1,1] double单波段TIFF
+   - 模型保存路径：`D:\Codex_code\RF_model.mat`
+
+4. `tool_reconstruct.py` + `tool_reconstruct.m` — NDVI时序重建
+   - 两阶段：16天重建→补充为8天时序
+   - 输入：RF估算NDVI文件夹、GLASS文件夹、输出文件夹、参数矩阵文件夹
+   - 回归参数矩阵保存：`D:\Codex_code`
+   - nodata统一为NaN
+
+**Agent主框架**
+
+`agent_core.py` — 已集成四个Tool，基本决策循环跑通
+- 使用DeepSeek API，model=`deepseek-chat`
+- 四个Tool全部注册到tools列表
+- dispatch_tool函数负责工具分发
+- Agent主循环：用户输入→LLM决策→工具调用→结果返回→继续或结束
+
+**RAG知识库**
+
+`rag_build.py` — 向量知识库构建完成
+- 15份国家遥感测绘标准PDF，路径`E:\遥感-无人机-测绘标准`
+- 使用pymupdf读取，切片500字符/重叠50字符
+- BGE中文Embedding模型（BAAI/bge-small-zh-v1.5）
+- Chroma向量数据库，路径`E:\pythonCode\CodexProject\vector_db`
+- 共598个文本块
+
+`rag_query.py` — RAG查询模块完成
+- 检索top5相关片段，拼接context给DeepSeek生成回答
+- 回答自动标注来源文档
+
+---
+
+### 待完成的部分
+
+**1. 意图识别模块**
+
+目标：用户输入后，先判断属于哪类任务，再路由到对应链路。
+
+四条链路：
+- 数据处理（调用四个遥感Tool）
+- 规范查询（调用RAG）
+- 文献检索（调用arXiv/Semantic Scholar API）
+- 闲聊/其他（直接LLM回答）
+
+实现思路：让LLM输出JSON格式意图标签，根据标签路由。
+
+**2. 多链路Workflow集成**
+
+目标：把agent_core.py（数据处理）和rag_query.py（规范查询）整合到一个统一入口，加入意图识别后自动分流。
+
+**3. 论文检索Tool**
+
+目标：调用arXiv API或Semantic Scholar API，检索遥感相关最新论文。
+
+**4. Streamlit交互页面（最后做）**
+
+目标：左侧选功能模式，主界面对话+工具调用过程展示+最终回答。
+
+---
+
+### 文件结构
+
+```
+E:\pythonCode\CodexProject\
+├── agent_core.py          # Agent主框架（已完成）
+├── rag_build.py           # 知识库构建（已完成）
+├── rag_query.py           # RAG查询（已完成）
+├── tool_preprocess.py     # 预处理Tool（已完成）
+├── tool_plc.py            # PLC校正Tool（已完成）
+├── tool_rf.py             # RF训练+应用Tool（已完成）
+├── tool_reconstruct.py    # 时序重建Tool（已完成）
+├── matlab_scripts\        # Matlab函数文件夹
+│   ├── plc_correction.m
+│   ├── rf_train.m
+│   ├── rf_apply.m
+│   └── reconstruct_ndvi.m
+└── vector_db\             # Chroma向量数据库
+```
+
+---
+
+### 下一步优先级
+
+1. 意图识别模块（最核心）
+2. 多链路Workflow整合
+3. 论文检索Tool
+4. Streamlit页面
+
+---

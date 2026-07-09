@@ -4,7 +4,6 @@ PLC 地形校正工具
 """
 import os
 import json
-import matlab.engine
 
 
 def run_plc_correction(
@@ -28,6 +27,9 @@ def run_plc_correction(
         JSON字符串，包含status、output_folder、message
     """
     try:
+        # 延迟导入重型依赖
+        import matlab.engine
+
         if not os.path.isdir(input_sr_folder):
             raise FileNotFoundError(f"SR影像文件夹不存在: {input_sr_folder}")
         if not os.path.isfile(slope_file):

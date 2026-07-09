@@ -5,9 +5,6 @@ GLASS NDVI 预处理工具
 import os
 import json
 from datetime import datetime, timedelta
-from osgeo import gdal
-
-gdal.UseExceptions()
 
 
 def parse_glass_date(hdf_filename: str) -> str:
@@ -45,6 +42,10 @@ def preprocess_glass_ndvi(
     Returns:
         JSON字符串，包含status、output_folder、message
     """
+    # 延迟导入重型依赖
+    from osgeo import gdal
+    gdal.UseExceptions()
+
     try:
         # 定义输出子文件夹
         tiff_folder = os.path.join(output_folder, "1_tiff")

@@ -4,7 +4,6 @@ NDVI 时序重建工具
 """
 import os
 import json
-import matlab.engine
 
 
 def reconstruct_ndvi(
@@ -28,6 +27,9 @@ def reconstruct_ndvi(
         JSON字符串，包含status、output_folder、message
     """
     try:
+        # 延迟导入重型依赖
+        import matlab.engine
+
         if not os.path.isdir(landsat_folder):
             raise FileNotFoundError(f"Landsat文件夹不存在: {landsat_folder}")
         if not os.path.isdir(glass_folder):

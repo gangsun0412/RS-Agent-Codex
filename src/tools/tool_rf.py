@@ -4,7 +4,6 @@
 """
 import os
 import json
-import matlab.engine
 
 
 def rf_train(
@@ -26,6 +25,9 @@ def rf_train(
         JSON字符串，包含status、model_path、message
     """
     try:
+        # 延迟导入重型依赖
+        import matlab.engine
+
         if not os.path.isdir(landsat_folder):
             raise FileNotFoundError(f"Landsat文件夹不存在: {landsat_folder}")
         if not os.path.isdir(glass_folder):
@@ -75,6 +77,9 @@ def rf_apply(
         JSON字符串，包含status、output_folder、message
     """
     try:
+        # 延迟导入重型依赖
+        import matlab.engine
+
         if not os.path.isdir(landsat_folder):
             raise FileNotFoundError(f"Landsat文件夹不存在: {landsat_folder}")
         if not os.path.isfile(model_path):
